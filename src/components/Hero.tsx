@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import gsap from "gsap";
+import RoastSelector from "./RoastSelector";
 
 export default function Hero() {
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -82,6 +83,8 @@ export default function Hero() {
               Our story
             </a>
           </div>
+
+          <RoastSelector />
 
           <div className="hero-reveal mt-10 flex items-center gap-6 text-xs text-white/55">
             <div>
