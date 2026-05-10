@@ -28,14 +28,14 @@ export default function Origin() {
             to your cup.
           </h2>
           <p className="mt-6 max-w-md text-base leading-relaxed text-white/70 sm:text-lg">
-            We travel to remote highlands across Ethiopia, Colombia, and
-            Sumatra to source lots from farmers who treat coffee as a craft.
-            Every harvest is hand-picked, sun-dried on raised beds, and
-            shipped within weeks of processing.
+            We work hand-in-hand with Filipino farmers in Atok, Benguet and the
+            foothills of Mt. Apo, where cool mountain air slows cherry ripening
+            and deepens sweetness in every harvest.
           </p>
           <p className="mt-4 max-w-md text-base leading-relaxed text-white/55">
-            Our master roaster then coaxes out each bean&apos;s signature notes
-            in small batches — never more than 12 kilograms at a time.
+            The secret to each lot&apos;s Aura is the Philippines&apos; rich volcanic
+            soil, then a patient small-batch roast that protects the bean&apos;s
+            natural cacao depth, floral lift, and clean finish.
           </p>
 
           <div className="mt-10 grid max-w-md grid-cols-3 gap-6 text-xs text-white/55">
@@ -45,7 +45,7 @@ export default function Origin() {
             </div>
             <div>
               <div className="text-2xl font-semibold text-white">3</div>
-              <div className="mt-1 uppercase tracking-widest">Continents</div>
+              <div className="mt-1 uppercase tracking-widest">Regions</div>
             </div>
             <div>
               <div className="text-2xl font-semibold text-white">12kg</div>
@@ -63,7 +63,7 @@ export default function Origin() {
           className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl border border-white/10 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]"
         >
           <Image
-            src="https://images.unsplash.com/photo-1559525839-d9acfd02da19?auto=format&fit=crop&w=1400&q=80"
+            src="/assets/mountain.jpg"
             alt="Coffee plantation at golden hour"
             fill
             sizes="(min-width: 768px) 50vw, 100vw"
@@ -72,10 +72,10 @@ export default function Origin() {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/50 via-transparent to-[var(--accent)]/15" />
           <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between text-xs text-white/80">
             <span className="rounded-full bg-black/40 px-3 py-1 backdrop-blur">
-              Yirgacheffe · 1,950m
+              Mt. Apo, Davao City · 1,250m
             </span>
             <span className="rounded-full bg-black/40 px-3 py-1 backdrop-blur">
-              Lot 04 · 2025
+              Lot 01 · 2026
             </span>
           </div>
         </motion.div>

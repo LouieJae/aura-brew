@@ -13,24 +13,24 @@ type Brew = {
 
 const brews: Brew[] = [
   {
-    name: "Espresso",
+    name: "Barako Gold",
     blurb:
-      "A dense, syrupy 30ml shot pulled from our house blend — chocolate, hazelnut, and a whisper of orange peel.",
-    notes: ["Dark cocoa", "Hazelnut", "Orange peel"],
+      "Dark roast. A dense, syrupy shot inspired by Batangas Barako — bittersweet cacao depth, toasted nuts, and golden caramel.",
+    notes: ["Dark cacao", "Toasted pili", "Caramel"],
     Icon: Coffee,
   },
   {
-    name: "Latte",
+    name: "Sagada Cloud Latte",
     blurb:
-      "Silky steamed milk folded into a double ristretto. Velvet texture, mellow sweetness, latte-art on every cup.",
+      "Medium roast. Silky steamed milk folded into a double pull from Sagada lots — velvety body, brown sugar sweetness, and soft vanilla.",
     notes: ["Milk chocolate", "Brown sugar", "Vanilla"],
     Icon: GlassWater,
   },
   {
-    name: "Cold Brew",
+    name: "Benguet Mist Cold Brew",
     blurb:
-      "Steeped slow for 18 hours over Ethiopian Yirgacheffe. Bright, floral, refreshingly low-acid.",
-    notes: ["Jasmine", "Stone fruit", "Honey"],
+      "Steeped for 18 hours using Benguet highland beans. Crisp, fragrant, and refreshingly low-acid with a clean mountain finish.",
+    notes: ["Sampaguita", "Citrus peel", "Wild honey"],
     Icon: Snowflake,
   },
 ];

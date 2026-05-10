@@ -1,13 +1,16 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { Float, Environment, ContactShadows } from "@react-three/drei";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { roastStore, ROAST_PRESETS, type Roast } from "@/lib/roastStore";
 import { preloaderStore } from "@/lib/preloaderStore";
+import { Html } from "@react-three/drei";
+import { motion } from "framer-motion";
 
 /**
  * Generates a tileable grayscale noise texture on a canvas. Used as a bumpMap
@@ -19,7 +22,7 @@ import { preloaderStore } from "@/lib/preloaderStore";
  */
 function useSoftCircleTexture(size = 64) {
   const [tex, setTex] = useState<THREE.CanvasTexture | null>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = size;
     const ctx = canvas.getContext("2d")!;
@@ -150,42 +153,73 @@ function useNoiseTexture(size = 256) {
   return tex;
 }
 
-/**
- * Placeholder coffee-bean: a sphere lit with PBR + procedural bump.
- * Idle Y rotation runs every frame; scroll-driven X/Z rotation + position
- * are applied externally via the parent group ref.
- *
- * `materialRef` is lifted so the parent can GSAP-tween color + roughness when
- * the roast changes.
- */
 function BeanMesh({
   materialRef,
 }: {
   materialRef: React.RefObject<THREE.MeshStandardMaterial | null>;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null!);
+  const beanRef = useRef<THREE.Group>(null!);
   const bump = useNoiseTexture(256);
+  const object = useLoader(OBJLoader, "/assets/Coffee Bean.obj");
 
   useFrame((_, delta) => {
-    if (meshRef.current) meshRef.current.rotation.y += delta * 0.25;
+    if (beanRef.current) beanRef.current.rotation.y += delta * 0.25;
   });
 
   // Default = medium roast preset (matches store initial state).
   const initial = ROAST_PRESETS.medium;
+  const material = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: initial.color,
+        roughness: initial.roughness,
+        metalness: 0.06,
+        bumpMap: bump ?? undefined,
+        bumpScale: 0.03,
+        envMapIntensity: 0.95,
+      }),
+    [initial.color, initial.roughness, bump],
+  );
+
+  useEffect(() => {
+    materialRef.current = material;
+    return () => {
+      if (materialRef.current === material) materialRef.current = null;
+    };
+  }, [material, materialRef]);
+
+  const { centeredBean, fitScale } = useMemo(() => {
+    const clone = object.clone(true);
+    const box = new THREE.Box3().setFromObject(clone);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const maxAxis = Math.max(size.x, size.y, size.z) || 1;
+    // Normalize OBJ dimensions so existing scrollytelling scales remain stable.
+    const normalizedScale = 1 / maxAxis;
+
+    clone.position.sub(center);
+    clone.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return;
+      child.castShadow = true;
+      child.receiveShadow = true;
+      child.material = material;
+    });
+    return { centeredBean: clone, fitScale: normalizedScale * 1.9 };
+  }, [object, material]);
+
+  useEffect(() => {
+    return () => {
+      material.dispose();
+    };
+  }, [material]);
 
   return (
-    <mesh ref={meshRef} castShadow receiveShadow>
-      <sphereGeometry args={[1, 96, 96]} />
-      <meshStandardMaterial
-        ref={materialRef}
-        color={initial.color}
-        roughness={initial.roughness}
-        metalness={0.05}
-        bumpMap={bump ?? undefined}
-        bumpScale={0.06}
-        envMapIntensity={0.9}
-      />
-    </mesh>
+    <group ref={beanRef} scale={fitScale}>
+      {/* Base orientation correction: stand the imported bean upright. */}
+      <group rotation={[0, 0, Math.PI / 2]}>
+        <primitive object={centeredBean} />
+      </group>
+    </group>
   );
 }
 
@@ -201,6 +235,7 @@ type Waypoint = {
     z?: number;
     scale?: number;
     rotX?: number;
+    rotY?: number;
     rotZ?: number;
   };
 };
@@ -210,33 +245,33 @@ type Waypoint = {
  * Positive X = right of viewport, negative X = left, negative Z = farther back.
  */
 const WAYPOINTS: Waypoint[] = [
-  // Hero: bean rests on the right
+  // Hero: bean sits centered in the glow on the right.
   {
     trigger: "#home",
     start: "top top",
-    end: "bottom top",
-    to: { x: 2.0, y: -0.6, z: 0, scale: 1.6, rotX: Math.PI * 0.6, rotZ: Math.PI * 0.2 },
+    end: "bottom 28%",
+    to: { x: 1.75, y: -0.02, z: 0, scale: 1.52, rotX: Math.PI * 0.12, rotY: Math.PI * 0.08, rotZ: Math.PI * 0.02 },
   },
-  // Origin: bean glides behind the text on the LEFT side
+  // Hero -> Origin: smooth right-center to left-bottom glide.
   {
     trigger: "#origin",
-    start: "top bottom",
-    end: "center center",
-    to: { x: -2.4, y: 0, z: -1.2, scale: 1.4, rotX: Math.PI * 1.2, rotZ: Math.PI * 0.6 },
+    start: "top 92%",
+    end: "center 66%",
+    to: { x: -2.15, y: -1.02, z: -1.1, scale: 1.28, rotX: Math.PI * 0.44, rotY: Math.PI * 0.22, rotZ: Math.PI * 0.08 },
   },
-  // Origin → Brews handoff: bean drifts up-right and shrinks
+  // Origin internal drift: keep moving, then leave a trigger gap before brews.
   {
     trigger: "#origin",
-    start: "center center",
-    end: "bottom top",
-    to: { x: 2.6, y: 1.2, z: -0.5, scale: 0.9, rotX: Math.PI * 1.8, rotZ: Math.PI * 0.9 },
+    start: "center 66%",
+    end: "bottom 30%",
+    to: { x: 0.75, y: -0.38, z: -0.85, scale: 1.05, rotX: Math.PI * 0.7, rotY: Math.PI * 0.34, rotZ: Math.PI * 0.18 },
   },
-  // Brews: bean tucks in the upper right, smaller, behind cards
+  // Brews: resumes after a gap and glides to the right side.
   {
     trigger: "#brews",
-    start: "top bottom",
+    start: "top 72%",
     end: "bottom top",
-    to: { x: 3.2, y: -1.4, z: -1.5, scale: 0.7, rotX: Math.PI * 2.6, rotZ: Math.PI * 1.4 },
+    to: { x: 2.85, y: -1.08, z: -1.35, scale: 0.72, rotX: Math.PI * 1.06, rotY: Math.PI * 0.56, rotZ: Math.PI * 0.28 },
   },
 ];
 
@@ -247,6 +282,7 @@ function AnimatedGroup() {
   // sources never overwrite each other — their scales multiply.
   const entryRef = useRef<THREE.Group>(null!);
   const pulseRef = useRef<THREE.Group>(null!);
+  const mouseTiltRef = useRef<THREE.Group>(null!);
   const materialRef = useRef<THREE.MeshStandardMaterial | null>(null);
 
   // Hero entry animation, gated on Preloader completion.
@@ -280,17 +316,14 @@ function AnimatedGroup() {
 
   // Roast -> material (color, roughness) + pulse on every set.
   useEffect(() => {
-    // Read store imperatively so this effect never re-runs from React state;
-    // we subscribe directly and tween with GSAP.
     let lastRoast: Roast = roastStore.get();
-
+  
     const applyRoast = (r: Roast, pulse: boolean) => {
       const mat = materialRef.current;
       const target = ROAST_PRESETS[r];
       const targetColor = new THREE.Color(target.color);
 
       if (mat) {
-        // Tween the color channels via a proxy object so GSAP can ease them.
         gsap.to(mat.color, {
           r: targetColor.r,
           g: targetColor.g,
@@ -304,45 +337,94 @@ function AnimatedGroup() {
           duration: 0.9,
           ease: "power2.out",
           overwrite: "auto",
-          onUpdate: () => {
-            mat.needsUpdate = true;
-          },
+          onUpdate: () => { mat.needsUpdate = true; },
         });
       }
+      
+      const glowColors = {
+        light: "#f3c896",
+        medium: "#e7b27e",
+        dark: "#8b4513"
+      };
+
+      gsap.to("html", {
+        "--accent": glowColors[r],
+        duration: 1.2,
+        ease: "power2.out"
+      });
 
       if (pulse && pulseRef.current) {
-        // Kill any in-flight pulse, then bump the inner group out + back.
         gsap.killTweensOf(pulseRef.current.scale);
         pulseRef.current.scale.setScalar(1);
-        gsap
-          .timeline()
-          .to(pulseRef.current.scale, {
-            x: 1.18,
-            y: 1.18,
-            z: 1.18,
-            duration: 0.22,
-            ease: "power2.out",
-          })
-          .to(pulseRef.current.scale, {
-            x: 1,
-            y: 1,
-            z: 1,
-            duration: 0.55,
-            ease: "elastic.out(1, 0.45)",
-          });
+        gsap.timeline()
+          .to(pulseRef.current.scale, { x: 1.15, y: 1.15, z: 1.15, duration: 0.2, ease: "power2.out" })
+          .to(pulseRef.current.scale, { x: 1, y: 1, z: 1, duration: 0.6, ease: "elastic.out(1, 0.5)" });
       }
     };
 
     // Prime the material with the current roast (no pulse on mount).
     applyRoast(lastRoast, false);
-
     const unsub = roastStore.subscribe(() => {
       const r = roastStore.get();
-      // Always pulse on a click (even if roast matches); tick bumps regardless.
       applyRoast(r, true);
       lastRoast = r;
     });
     return unsub;
+  }, []);
+
+  const activeRoast = roastStore.get();
+  const flavors = {
+    light: ["Floral", "Citrus", "Tea-like"],
+    medium: ["Nutty", "Caramel", "Balanced"],
+    dark: ["Bold", "Smoky", "Chocolate"]
+  };
+
+  <group ref={mouseTiltRef}>
+    <BeanMesh materialRef={materialRef} />
+    
+    {/* Flavor Labels */}
+    {flavors[activeRoast].map((note, i) => (
+      <Html
+        key={`${activeRoast}-${i}`}
+        position={[i % 2 === 0 ? 1.2 : -1.2, (i - 1) * 0.5, 0]}
+        center
+        distanceFactor={10}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 0.6, scale: 1 }}
+          transition={{ duration: 1, delay: i * 0.1 }}
+          className="pointer-events-none whitespace-nowrap rounded-full border border-white/20 bg-black/40 px-2 py-1 text-[10px] uppercase tracking-widest text-white backdrop-blur-md"
+        >
+          {note}
+        </motion.div>
+      </Html>
+    ))}
+  </group>
+
+  useEffect(() => {
+    const tilt = mouseTiltRef.current;
+    if (!tilt) return;
+    let raf = 0;
+    const onMove = (e: MouseEvent) => {
+      const nx = (e.clientX / window.innerWidth) * 2 - 1;
+      const ny = (e.clientY / window.innerHeight) * 2 - 1;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        gsap.to(tilt.rotation, {
+          x: ny * -0.14,
+          y: nx * 0.18,
+          duration: 1.1,
+          ease: "power3.out",
+          overwrite: "auto",
+        });
+      });
+    };
+    window.addEventListener("mousemove", onMove);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(raf);
+    };
   }, []);
 
   useEffect(() => {
@@ -354,49 +436,69 @@ function AnimatedGroup() {
     const first = WAYPOINTS[0].to;
     g.position.set(first.x, first.y, first.z ?? 0);
     g.scale.setScalar(first.scale ?? 1.6);
-    g.rotation.set(0, 0, 0);
+    g.rotation.set(first.rotX ?? 0, first.rotY ?? 0, first.rotZ ?? 0);
 
     const ctx = gsap.context(() => {
-      WAYPOINTS.forEach((wp) => {
-        gsap.to(g.position, {
-          x: wp.to.x,
-          y: wp.to.y,
-          z: wp.to.z ?? 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: wp.trigger,
-            start: wp.start,
-            end: wp.end,
-            scrub: 0.6,
+      WAYPOINTS.forEach((wp, i) => {
+        const from = i === 0 ? WAYPOINTS[0].to : WAYPOINTS[i - 1].to;
+        const sharedScroll = {
+          trigger: wp.trigger,
+          start: `${wp.start}+=10`,
+          end: wp.end,
+          scrub: 2,
+          invalidateOnRefresh: true,
+        } as const;
+
+        gsap.fromTo(
+          g.position,
+          { x: from.x, y: from.y, z: from.z ?? 0 },
+          {
+            x: wp.to.x,
+            y: wp.to.y,
+            z: wp.to.z ?? 0,
+            ease: "expo.out",
+            overwrite: "auto",
+            delay: 0.1,
+            immediateRender: false,
+            scrollTrigger: sharedScroll,
           },
-        });
-        if (wp.to.scale !== undefined) {
-          gsap.to(g.scale, {
-            x: wp.to.scale,
-            y: wp.to.scale,
-            z: wp.to.scale,
-            ease: "none",
-            scrollTrigger: {
-              trigger: wp.trigger,
-              start: wp.start,
-              end: wp.end,
-              scrub: 0.6,
-            },
-          });
-        }
-        if (wp.to.rotX !== undefined || wp.to.rotZ !== undefined) {
-          gsap.to(g.rotation, {
+        );
+
+        const fromScale = from.scale ?? 1.6;
+        const toScale = wp.to.scale ?? fromScale;
+        gsap.fromTo(
+          g.scale,
+          { x: fromScale, y: fromScale, z: fromScale },
+          {
+            x: toScale,
+            y: toScale,
+            z: toScale,
+            ease: "expo.out",
+            overwrite: "auto",
+            delay: 0.1,
+            immediateRender: false,
+            scrollTrigger: sharedScroll,
+          },
+        );
+
+        gsap.fromTo(
+          g.rotation,
+          {
+            x: from.rotX ?? g.rotation.x,
+            y: from.rotY ?? g.rotation.y,
+            z: from.rotZ ?? g.rotation.z,
+          },
+          {
             x: wp.to.rotX ?? g.rotation.x,
+            y: wp.to.rotY ?? g.rotation.y,
             z: wp.to.rotZ ?? g.rotation.z,
-            ease: "none",
-            scrollTrigger: {
-              trigger: wp.trigger,
-              start: wp.start,
-              end: wp.end,
-              scrub: 0.6,
-            },
-          });
-        }
+            ease: "expo.out",
+            overwrite: "auto",
+            delay: 0.1,
+            immediateRender: false,
+            scrollTrigger: sharedScroll,
+          },
+        );
       });
     });
 
@@ -419,7 +521,9 @@ function AnimatedGroup() {
       <group ref={groupRef}>
         <group ref={entryRef} scale={0}>
           <group ref={pulseRef}>
-            <BeanMesh materialRef={materialRef} />
+            <group ref={mouseTiltRef}>
+              <BeanMesh materialRef={materialRef} />
+            </group>
           </group>
         </group>
       </group>

@@ -3,8 +3,8 @@
 :root {
   --background: #0b0807;
   --foreground: #f5ece2;
-  --accent: #c89b6a;
-  --accent-strong: #e7b27e;
+  --accent: #b97854;
+  --accent-strong: #d79663;
 }
 
 @theme inline {
@@ -39,13 +39,13 @@ body {
 
 body {
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(231, 178, 126, 0.18), transparent 60%),
-    radial-gradient(900px 500px at -10% 30%, rgba(200, 155, 106, 0.12), transparent 60%),
+    radial-gradient(1200px 600px at 80% -10%, rgba(215, 150, 99, 0.18), transparent 60%),
+    radial-gradient(900px 500px at -10% 30%, rgba(185, 120, 84, 0.12), transparent 60%),
     var(--background);
 }
 
 ::selection {
-  background: rgba(231, 178, 126, 0.35);
+  background: rgba(215, 150, 99, 0.35);
   color: #fff;
 }
 

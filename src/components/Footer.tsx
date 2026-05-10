@@ -68,8 +68,8 @@ export default function Footer() {
             </span>
           </div>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">
-            A premium micro-roastery. Crafted slowly, served warmly, in the
-            heart of the city.
+            A premium Philippine micro-roastery. Crafted slowly, served warmly,
+            in the heart of the city.
           </p>
           <div className="mt-6 flex items-center gap-3">
             {socials.map(({ label, href, Icon }) => (
@@ -93,8 +93,8 @@ export default function Footer() {
               Visit
             </h4>
             <ul className="mt-4 space-y-2 text-white/75">
-              <li>14 Lantern Lane</li>
-              <li>Singapore 049320</li>
+              <li>Barangay Guisang-an</li>
+              <li>Sto. Nino, South Cotabato</li>
               <li>Mon — Sun · 7am to 7pm</li>
             </ul>
           </div>
@@ -127,7 +127,7 @@ export default function Footer() {
             <input
               type="email"
               required
-              placeholder="you@morningritual.com"
+              placeholder="Louiejaemaravillosa2@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/35 focus:outline-none"

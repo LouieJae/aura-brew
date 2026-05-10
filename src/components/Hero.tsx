@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import gsap from "gsap";
@@ -30,10 +29,10 @@ export default function Hero() {
       id="home"
       className="relative isolate min-h-[100svh] overflow-hidden pt-28"
     >
-      {/* Backdrop image */}
+      {/* Backdrop image
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.18]">
         <Image
-          src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=2000&q=80"
+          src="#"
           alt=""
           fill
           priority
@@ -41,7 +40,7 @@ export default function Hero() {
           className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/40 via-[var(--background)]/70 to-[var(--background)]" />
-      </div>
+      </div> */}
 
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-6 pb-24 md:grid-cols-2 md:gap-6 md:pb-32">
         {/* Copy */}
@@ -53,19 +52,19 @@ export default function Hero() {
             className="hero-reveal inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/70"
           >
             <Sparkles size={14} className="text-[var(--accent-strong)]" />
-            Single-origin · Slow roasted
+            Philippine highland craft
           </motion.span>
 
           <h1 className="hero-reveal mt-6 text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
-            Brewed for
+            Kape para sa
             <br />
-            the <span className="bg-gradient-to-r from-[var(--accent-strong)] via-[#f3c896] to-[var(--accent)] bg-clip-text text-transparent">aura</span> in you.
+            <span className="bg-gradient-to-r from-[var(--accent-strong)] via-[#f3c896] to-[var(--accent)] bg-clip-text text-transparent">aura</span>.
           </h1>
 
           <p className="hero-reveal mt-6 max-w-md text-base leading-relaxed text-white/70 sm:text-lg">
-            A premium micro-roastery crafting the world&apos;s most expressive
-            beans into cups that feel like a quiet ritual. Discover our seasonal
-            single-origins and signature blends.
+            A premium Philippine micro-roastery pouring high-altitude beans from the
+            Sagada, Benguet, and the Mt. Apo mountains into every ritual
+            cup, with seasonal single-origins and refined house signatures.
           </p>
 
           <div className="hero-reveal mt-8 flex flex-wrap items-center gap-3">
@@ -98,7 +97,7 @@ export default function Hero() {
             </div>
             <div className="h-8 w-px bg-white/10" />
             <div>
-              <div className="text-2xl font-semibold text-white">2014</div>
+              <div className="text-2xl font-semibold text-white">2026</div>
               <div className="uppercase tracking-widest">Est.</div>
             </div>
           </div>
@@ -107,7 +106,7 @@ export default function Hero() {
         {/* 3D stage placeholder — the global <BeanScene/> renders the bean here via fixed canvas */}
         <div className="relative h-[420px] w-full sm:h-[520px] md:h-[620px]">
           {/* Glow halo behind the floating bean */}
-          <div className="absolute inset-0 mx-auto h-3/4 w-3/4 translate-y-6 rounded-full bg-[var(--accent)]/25 blur-3xl" />
+          <div className="absolute inset-0 mx-auto h-3/4 w-3/4 translate-y-6 rounded-full bg-[var(--accent)]/25 blur-3xl transition-colors duration-1000" />
         </div>
       </div>
 
